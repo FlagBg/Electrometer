@@ -45,25 +45,54 @@ class UserModel
 		{
 			if( $stmt->rowCount() > 0 )
 			{
-				$rows = $stmt->fetchAll( PDO::FETCH_ASSOC );
-				$user = array_pop( $rows );//print_r();die();
+				$rows	= $stmt->fetchAll( PDO::FETCH_ASSOC );
+				$row	= array_pop( $rows );
 				
-				return new User( $user['fname'], $user['lname'], $user['age']);
+				$user	= new User( $row['fname'], $row['lname'], $row['age']);
+				$user->setId( $row['id'] );
 				
+				return $user;
 			}
-			else 
-			{
-				return false;
-			}
+		}
 			
-		}
-		else 
-		{
-			return false;
-		}
-		
+		return false;
 	}
 	
+	/**
+	 * @brief	PDO query that is using the html and creating the object; 
+	 * 
+	 * @param void PDO $userData
+	 * 
+	 * @return	pdo;
+	 */
+	public function createUser( $userData )
+	{
+		$sql = ' 
+					INSERT INTO users
+					SET username 	= ?,
+					password 		= ?,
+					role_id 		= ?,
+					fname 			= ?,
+					lname			= ?,
+					age				= ?
+				';	
+		
+		$stmt = $this->db->prepare( $sql );
+		
+		$result = $stmt->execute( $userData );
+	}
+	
+	public function updateUser( $userData )
+	{
+		$sql	= '
+				
+				
+				
+				
+				
+				';
+		
+	}
 }
 
 

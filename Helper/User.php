@@ -25,6 +25,11 @@ class User
 	 */
 	protected $age;
 	
+	/**
+	 * @var	int $id
+	 */
+	protected $id;
+	
 	
 	public function __construct( $firstName, $lastName, $age )
 	{
@@ -106,7 +111,27 @@ class User
 		$this->age = $age;
 	}
 	
+	/**
+	 * @brief	Get user id
+	 *
+	 * @return	int
+	 */
+	public function getId()
+	{
+		return $this->id;
+	}
 	
+	/**
+	 * @brief	Set user id
+	 * 
+	 * @param	int $id
+	 * 
+	 * @return	void
+	 */
+	public function setId( $id )
+	{
+		$this->id	= $id;
+	}
 }
 
 

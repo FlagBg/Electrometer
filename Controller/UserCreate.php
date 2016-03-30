@@ -1,4 +1,6 @@
 <?php 
+
+include_once '../Model/UserModel.php';
 /**
  * @brief 		class that is creating the user as controller; It is using constructor
  * 				and connection with the database

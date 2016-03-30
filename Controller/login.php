@@ -39,6 +39,10 @@ class Login
 	 */
 	public function __construct()
 	{
+		if ( isset( $_SESSION['user_id'] ) && $_SESSION['user_id'] )
+		{
+			$this->loggedIn	= true; 
+		}
 	}
 	
 	/**
@@ -57,26 +61,27 @@ class Login
 		
 		if( $this->user = $userModel->login( $username, $password ))
 		{
-			$this->loggedIn = true;
-		}		
+			$_SESSION['user_id'] = $this->user->getId();
+
+			$this->loggedIn		= true;
+		}
+	}
+	
+	public function logout()
+	{
+		unset( $_SESSION['user_id'] );
+		
+		$this->loggedIn		= false;
 	}
 	
 	/**
 	 * @brief 	function is we logged print the datas!
+	 * 
+	 * @return	boolean
 	 */
 	public function isLoggedIn()
 	{
-		if ($this->loggedIn)
-		{
-			print "User is logged in";
-			var_dump( $this->user->getFirstName());
-			var_dump( $this->user->getLastName());
-			print_r( $this->user);
-		}
-		else 
-		{
-			print "Invalid login parameters";
-		}
+		return $this->loggedIn;
 	}
 	
 	/**
@@ -84,7 +89,7 @@ class Login
 	 */
 	public function renderLoginForm()
 	{
-		$form = file_get_contents(__DIR__ . '/../Views/Login.html');
+		$form = file_get_contents(__DIR__ . '/../View/Login.html');
 		
 		print( $form );
 		

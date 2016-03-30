@@ -4,8 +4,15 @@
 //the code underneath === $controller up.!
 //Is Controller is set up and exists, as shows the path and the name of 
 //controller that we request;
+//da si vzemem dannite ot sesiyata, da vidim kak se setva, destroyva, izvikvat dannite po id ili kakvoto i da e tam;
+//sled tova da si napravya edno vikane po sesiya... i da vurna stoynostta po sesiya po id; 
 
-if (isset( $_GET['controller']))
+session_start();
+
+error_reporting( E_ALL );
+ini_set( 'display_errors', 1 );
+
+ 	if (isset( $_GET['controller'] ) )
 	{
 		$controller = $_GET['controller'];
 	}//if controller = empty(if not get);
@@ -13,23 +20,39 @@ if (isset( $_GET['controller']))
 	{
 		$controller = '';
 	}
-		//if controller exists and not empty or equal
-	if ( $controller !== '')
-	{
-		if( $controller =='login')
-		
-		include__DIR__ . '/../Controller/login.php';
 	
-	$login = new Login();
-	//var_dump( $login ); die();
-	$login->renderLoginForm();			
+	if( $controller == 'login' )
+	{
+		include __DIR__ . '/../Controller/login.php';
+		$login = new Login();
+		
+		if ( ! $login->isloggedIn() )
+		{
+			$login->renderLoginForm();
+		}
+		else
+		{
+			header( 'Location: ?controller=userEdit' );
+			exit;
+		}
 	}
-
+	elseif ( $controller == 'logout' )
+	{
+		include __DIR__ . '/../Controller/login.php';
+		$login = new Login();
+		$login->logout();
+		
+		if ( ! $login->isloggedIn() )
+		{
+			header( 'Location: ?controller=login' );
+			exit;
+		}
+	}
 	elseif( $controller == 'loginUser')
 	{
-		include__DIR__ . '/../Controllers/login.php';
+		include __DIR__ . '/../Controller/login.php';
 		
-		if(!empty( $_POST ) && isset ( $_POST['action'] ) && $_POST['action'] == 'login')
+		if ( ! empty( $_POST ) && isset ( $_POST['action'] ) && $_POST['action'] == 'login')
 		{
 			$username = '';
 			if( isset($_POST['username']) )
@@ -38,14 +61,24 @@ if (isset( $_GET['controller']))
 			}
 			
 			$password = '';
-			if( isset($_POST['[password']) )
+			if( isset($_POST['password']) )
 			{
-					$password = trim( $_POST['password']);
+				$password = trim( $_POST['password']);
 			}
 			
-			$login = new Login($username, $password);
+			$login = new Login();
+			$login->login( $username, $password );
 			
-			$login->isloggedIn();
+			if ( $login->isLoggedIn() )
+			{
+				header( 'Location: ?controller=userEdit' );
+				exit;
+			}
+			else
+			{
+				header( 'Location: ?controller=login' );
+				exit;
+			}
 		}
 	}
 	
@@ -53,7 +86,7 @@ if (isset( $_GET['controller']))
 	//we put controller userEdit!!!!
 	elseif( $controller =='userEdit')
 	{
-		include __DIR__ . '/../Controllers/UserEdit.php';
+		include __DIR__ . '/../Controller/UserEdit.php';
 				
 		$userEdit = new UserEdit();
 		$userEdit->renderForm();
@@ -73,16 +106,7 @@ if (isset( $_GET['controller']))
 	$userCreate = new UserCreate();
 	$userCreate->renderForm();
 		
-		
-		
-		
+			
 	}
-
-
-
-
-
-
-
-
-?>
+	
+//echo "done\n";
