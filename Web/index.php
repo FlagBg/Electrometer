@@ -1,112 +1,346 @@
-<?php 
+<?php
+
+session_start();
+
+define ('PROJPATH', realpath($_SERVER['DOCUMENT_ROOT'] . '/../'));
+
+include '../utils/UrlHelper.php';
+//phpinfo(); die();
+
+/*
+session_start();
+if (!isset($_SESSION['op'])) {
+  $_SESSION['op'] = 0;
+} else {
+  $_SESSION['op']++;
+}
+
+var_dump( $_SESSION['count'] );
+var_dump( $_SESSION[ 'op'] );
+
+if( !$_SESSION['count']) 
+//unset($_SESSION['op']);
+exit;
+
+if ( ! isset( $_SESSION['id'] ) )
+{
+	echo "Not logged in";
+	// if login request
+		// do login
+			// if success
+				// $_SESSION['id'] = userId
+				// redirect to welcome page
+			// else
+				// show error
+	// else
+		// display login page
+}
+else
+{
+	// the user is logged in
+	// show the requested page
+}
+
+
+*/
 
 //$controller	 = isset($_GET['controller']) ? $_GET['controller'] : '';
 //the code underneath === $controller up.!
 //Is Controller is set up and exists, as shows the path and the name of 
 //controller that we request;
-//da si vzemem dannite ot sesiyata, da vidim kak se setva, destroyva, izvikvat dannite po id ili kakvoto i da e tam;
-//sled tova da si napravya edno vikane po sesiya... i da vurna stoynostta po sesiya po id; 
-
-session_start();
 
 error_reporting( E_ALL );
-ini_set( 'display_errors', 1 );
+ini_set( 'display_errors', '1' );
 
- 	if (isset( $_GET['controller'] ) )
-	{
-		$controller = $_GET['controller'];
-	}//if controller = empty(if not get);
-	else 
-	{
-		$controller = '';
-	}
+if(isset($_GET['controller']))
+{
+	$controller	= $_GET['controller'];
+}
+//if controller = empty(if not get!)
+else
+{
+	$controller	= '';
 	
-	if( $controller == 'login' )
+	//ne sum podal else case /..... toest.....
+	//http://www.electromer.com/?controller=login
+}
+error_log(print_r($controller, true), 3, 'D:\log.txt');
+//if get controller and exists and not empty and equal ot
+if ( $controller != '' )
+{	
+	//take controller -> 'login' and take it from __DIR__
+	if($controller == 'login')
 	{
-		include __DIR__ . '/../Controller/login.php';
-		$login = new Login();
+		/**
+		 * @brief	login.php is a controller where we have class Login
+		 * with object $login( $username, $password, $loggedIn=False and
+		 * an $user(var that checked if(loggedIn is true)and print) the form
+		 * from the view(Login.html);
+		 * 
+		 * var	$login as object requesting function renderLoginForm
+		 */
 		
-		if ( ! $login->isloggedIn() )
-		{
-			$login->renderLoginForm();
+		include __DIR__ . '/../Controllers/Login.php';
+
+		$login	= new Login();
+		
+		if ( $login->isLoggedIn() )
+		{ // print('hi'); die('asdfafds');
+			//header( 'index.php?controller=userEdit' );//NB!!! HOME !!!
+			exit();		
+			
+			UrlHelper::redirect( '/home' );
 		}
 		else
 		{
-			header( 'Location: ?controller=userEdit' );
-			exit;
+			$login->renderLoginForm();
 		}
 	}
-	elseif ( $controller == 'logout' )
+	elseif ($controller == 'home')
 	{
-		include __DIR__ . '/../Controller/login.php';
-		$login = new Login();
+		if (isset($_SESSION['user_id']) && isset($_SESSION['user_key']))
+		{
+			include_once (PROJPATH . '/Controllers/Home_loggedin.php');
+			
+			$homeController	= new Home();
+			$homeController->loadPage();
+			
+		}
+		else
+		{
+			include_once (PROJPATH . '/Controllers/Home.php');
+			
+			$homeController	= new Home();
+			$homeController->loadPage();
+			
+		}
+	}
+	
+	elseif( $controller == 'logout' )
+	{
+		include __DIR__ . '/../Controllers/Login.php';
+		
+		$login	= new Login();
 		$login->logout();
 		
-		if ( ! $login->isloggedIn() )
-		{
-			header( 'Location: ?controller=login' );
-			exit;
-		}
+		UrlHelper::redirect( 'index.php?controller=login' );
 	}
-	elseif( $controller == 'loginUser')
+	
+	elseif ( $controller == 'users' )
 	{
-		include __DIR__ . '/../Controller/login.php';
+		include __DIR__ . '/../Controllers/ListAllUsers.php';
 		
-		if ( ! empty( $_POST ) && isset ( $_POST['action'] ) && $_POST['action'] == 'login')
-		{
-			$username = '';
+		$var = new Users();;
+		$var->loadContent();
+	}
+	
+	elseif ( $controller == 'my-profile' )
+	{
+		include __DIR__ . '/../Controllers/Users.php';
+		
+		$var = new Users();
+		$var->loadPage('my-profile');
+	}
+	
+	// Electrometers Controller
+	
+	elseif ($controller == 'electrometers')
+	{
+
+		include __DIR__ . '/../Controllers/Electrometers.php';
+		
+		$var = new Eletrometers();
+		$var->loadContent();
+	}
+	
+	elseif ($controller == 'my-electrometers')
+	{
+
+		include __DIR__ . '/../Controllers/Electrometers.php';
+		
+		$var = new Eletrometers();
+		$var->loadPage('my-electrometers');
+	}
+	
+	elseif( $controller == 'listUsers' )
+	{
+		
+		include __DIR__ . '/../Controllers/ListAllUsers.php';
+		
+		$var = new ShowAllUsers();;
+		$var->listAllUsers();
+	}
+	/**
+	 * pokazvame v koi controller getva in!
+	 */
+	
+	elseif($controller == 'loginUser')
+	{
+		/**
+		 * brief	elseif condition if not from the form $_POST is not empty and isset in 'action'
+		 * 			trim the text in username and code in password; than create an object $login()
+		 * 			and request public function loggedIn() that prints everything for the User!
+		 */
+		include __DIR__ . '/../Controllers/Login.php';
+		
+		if(! empty( $_POST ) && isset( $_POST['action'] ) && $_POST['action'] == 'login')
+		{//tova tuk otkade go vze????
+			$username	= '';
 			if( isset($_POST['username']) )
 			{
-				$username = trim($_POST['username']);
+				$username	= trim($_POST['username']);
 			}
 			
-			$password = '';
+			$password	= '';
 			if( isset($_POST['password']) )
 			{
-				$password = trim( $_POST['password']);
+				$password	= trim($_POST['password']);
 			}
 			
-			$login = new Login();
+			$login	= new Login();
 			$login->login( $username, $password );
+			//print "hi"; die();
 			
-			if ( $login->isLoggedIn() )
+			echo 'got here';
+			if( $login->isloggedIn() )
+			//dotuk raboti, natatyk ne raboti? why?
 			{
-				header( 'Location: ?controller=userEdit' );
-				exit;
+				//header( 'Location: index.php?controller=userEdit' );
+				//exit();
+				
+				UrlHelper::redirect( '/home' );
+				//die('logged in');
+
 			}
 			else
 			{
-				header( 'Location: ?controller=login' );
+				print_r( 'Error on login' );
+				//print('hi'); die();
+				$login->renderLoginForm();
+				//UrlHelper::redirect('index.php?controller=Login.php');
+				
+				$homeController->renderView();
+				//var_dump( $homeController); die();
 				exit;
 			}
 		}
 	}
-	
-	///////////////////////////////////////////////////////
-	//we put controller userEdit!!!!
-	elseif( $controller =='userEdit')
+	elseif($controller == 'userEdit')
 	{
-		include __DIR__ . '/../Controller/UserEdit.php';
-				
-		$userEdit = new UserEdit();
+		include __DIR__ . '/../Controllers/UserEdit.php';
+		
+		$userEdit	= new UserEdit();
+		
+		if( ! empty( $_POST ) )
+		{
+			$userEdit->userEdit();
+		}
+		
 		$userEdit->renderForm();
-	}
-	elseif($controller =='userEditPost')
-	{
-		include__DIR__ . '/../Controller/UserEdit.php';
 		
-		$userEdit = new UserEdit();
+		
 		
 	}
-///////////////////////////////////////////////////////////
-	elseif( $controller == 'userCreate')
+	elseif($controller =='userDelete')//elseif($controller == 'userDelete')
 	{
-		include__DIR__ . '/../Controller/UserCreate.php';
-				
-	$userCreate = new UserCreate();
-	$userCreate->renderForm();
+		include __DIR__ . '/../Controllers/UserEdit.php';
 		
+		$userDelete	= new UserEdit();
+		
+		if( ! empty( $_POST ) )
+		{
 			
+			var_dump($userDelete);
+			$userDelete->userDelete();
+			//print('asdfdasfasfas'); die();
+		}
+		
+		//$userDelete->renderForm();
+		//die();//dobavka mine! // promenih $userEdit na 4userDelete
+	}
+	elseif($controller == 'userCreate')
+	{
+		include __DIR__ . '/../Controllers/UserCreate.php';
+	
+		$userCreate	= new UserCreate();
+		$userCreate->renderForm();
+		
+		if ( $_POST )
+		{
+			//var_dump( $userCreate->create() ); die();
+			$result	= $userCreate->create();//ei tuk dava greshkata!!!
+			
+			if ( $result )
+			{
+				UrlHelper::redirect( '/login' );
+				//ÒÎÂÀ ÒÓÊ ÃÐÅØÍÎ ËÈ Å???
+			}
+		}
+	}
+	elseif($controller == 'register')
+	{
+		include __DIR__ . '/../Controllers/UserCreate.php';
+	
+		$userCreate	= new UserCreate();
+		$userCreate->renderForm();
+		
+		if ( $_POST )
+		{
+			//var_dump( $userCreate->create() ); die();
+			$result	= $userCreate->create();//ei tuk dava greshkata!!!
+			
+			if ( $result )
+			{
+				UrlHelper::redirect( '/login' );
+				//ÒÎÂÀ ÒÓÊ ÃÐÅØÍÎ ËÈ Å???
+			}
+		}
+	}
+	elseif($controller == 'not-found')
+	{
+		include __DIR__ . '/../Controllers/ErrorPage.php';
+	
+		$userCreate	= new ErrorPage();
+		$userCreate->loadPage('not-found');
+	}
+	else
+	{
+		//die('fff');
+		UrlHelper::redirect( '/not-found' );
+		//TOVA AKO NAPISHA: UrlHelper::redirect( 'index.php?conctroller=Home';
 	}
 	
-//echo "done\n";
+	//slagam si edin controllerDrop! shte trie! NOT HERE!!!! NEEDS TO BE IN OTHER PLACE!
+/* 	elseif($controller== 'dropUser')
+	{
+		include__DIR__ . '/../Controllers/UserDrop.php';
+		
+		$userDrop = new UserDrop();
+		$userDrop->renderForm();
+		
+		
+	} */
+}
+else
+{
+	UrlHelper::redirect( '/home' );
+}
+
+
+
+/*
+ * //$user_ip = $_SERVER['REMOTE_ADDR'];
+
+//$string = 'my ip is:' . $user_ip;
+
+function echo_ip()
+{
+	$user_ip = $_SERVER['REMOTE_ADDR'];
+	//global $user_ip;
+	$string = 'my ip is:' . $user_ip;
+	echo $string;
+}
+
+echo_ip();
+*/
+
